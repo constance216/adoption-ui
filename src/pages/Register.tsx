@@ -23,7 +23,7 @@ const Register: React.FC = () => {
     }
   }, [isAuthenticated]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     setError(''); // Clear error when user types
@@ -135,7 +135,7 @@ const Register: React.FC = () => {
             </a>
           </p>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
           <div className="space-y-4">
             <div>
               <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">
@@ -183,23 +183,6 @@ const Register: React.FC = () => {
                 value={formData.email}
                 onChange={handleChange}
               />
-            </div>
-
-            <div>
-              <label htmlFor="role" className="block text-sm font-medium text-gray-700">
-                Role
-              </label>
-              <select
-                id="role"
-                name="role"
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                value={formData.role}
-                onChange={handleChange}
-              >
-                <option value="USER">Pet Adopter</option>
-                <option value="SHELTER">Shelter Manager</option>
-                <option value="VETERINARIAN">Veterinarian</option>
-              </select>
             </div>
 
             <div>
