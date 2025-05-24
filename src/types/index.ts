@@ -42,8 +42,9 @@ export interface User {
   export interface Breed {
     id: number;
     name: string;
-    category: Category;
     description?: string;
+    categoryId: number;
+    categoryName: string;
     createdAt: string;
     updatedAt: string;
   }

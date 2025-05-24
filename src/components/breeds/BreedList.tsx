@@ -25,7 +25,7 @@ const BreedList: React.FC<BreedListProps> = ({
       width: '25%',
     },
     {
-      key: 'category.name',
+      key: 'categoryName',
       title: 'Category',
       width: '20%',
       render: (value: string) => (

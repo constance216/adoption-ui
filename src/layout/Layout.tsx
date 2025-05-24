@@ -10,6 +10,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navigation = [
+    { name: 'Dashboard', href: '/dashboard', roles: ['ADMIN'] },
     { name: 'Pets', href: '/pets', roles: ['USER', 'ADMIN', 'SHELTER', 'VETERINARIAN'] },
     { name: 'Categories', href: '/categories', roles: ['ADMIN'] },
     { name: 'Breeds', href: '/breeds', roles: ['ADMIN'] },

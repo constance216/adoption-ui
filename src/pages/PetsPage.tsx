@@ -6,6 +6,7 @@ import { breedService } from '../services/breedService';
 import { adoptionService } from '../services/adoptionService';
 import { useAuth } from '../features/auth/AuthContext';
 import PetCard from '../components/pets/PetCard';
+import PetForm from '../components/pets/PetForm';
 import AdoptionForm from '../components/adoptions/AdoptionsForm';
 import { Modal, Button, Select, Input, Card } from '../components/ui';
 
@@ -32,6 +33,8 @@ const PetsPage: React.FC = () => {
   // Modal states
   const [adoptingPet, setAdoptingPet] = useState<Pet | null>(null);
   const [viewingPet, setViewingPet] = useState<Pet | null>(null);
+  const [isAddPetModalOpen, setIsAddPetModalOpen] = useState(false);
+  const [editingPet, setEditingPet] = useState<Pet | null>(null);
 
   // Filter states
   const [filters, setFilters] = useState<PetFilters>({
@@ -59,7 +62,7 @@ const PetsPage: React.FC = () => {
   useEffect(() => {
     if (filters.category) {
       const categoryBreeds = breeds.filter(
-        breed => breed.category.id.toString() === filters.category
+        breed => breed.categoryId.toString() === filters.category
       );
       setFilteredBreeds(categoryBreeds);
       // Reset breed filter if current breed doesn't belong to selected category
@@ -187,11 +190,42 @@ const PetsPage: React.FC = () => {
     setViewingPet(pet);
   };
 
+  const handleAddPet = () => {
+    setEditingPet(null);
+    setIsAddPetModalOpen(true);
+  };
+
+  const handlePetSubmit = async (data: {
+    name: string;
+    breedId?: number;
+    categoryId: number;
+    age: number;
+    description?: string;
+    image?: string;
+    gender: 'MALE' | 'FEMALE';
+  }) => {
+    try {
+      if (editingPet) {
+        await petService.updatePet(editingPet.id, data);
+      } else {
+        await petService.createPet({
+          ...data,
+          shelterId: user?.id,
+        });
+      }
+      setIsAddPetModalOpen(false);
+      setEditingPet(null);
+      await loadInitialData();
+      setSuccessMessage(`Pet successfully ${editingPet ? 'updated' : 'added'}!`);
+      setTimeout(() => setSuccessMessage(''), 5000);
+    } catch (err: any) {
+      throw new Error(err.message || `Failed to ${editingPet ? 'update' : 'add'} pet`);
+    }
+  };
+
   const handleEdit = (pet: Pet) => {
-    // TODO: Implement edit functionality or navigate to edit page
-    console.log('Edit pet:', pet);
-    setError('Edit functionality coming soon!');
-    setTimeout(() => setError(''), 3000);
+    setEditingPet(pet);
+    setIsAddPetModalOpen(true);
   };
 
   // Filter options
@@ -250,7 +284,7 @@ const PetsPage: React.FC = () => {
         </div>
         <div className="mt-4 flex md:mt-0 md:ml-4 space-x-3">
           {(user?.role === 'ADMIN' || user?.role === 'SHELTER') && (
-            <Button onClick={() => setError('Add pet functionality coming soon!')}>
+            <Button onClick={handleAddPet}>
               Add Pet
             </Button>
           )}
@@ -532,6 +566,25 @@ const PetsPage: React.FC = () => {
             </div>
           </div>
         )}
+      </Modal>
+
+      {/* Add/Edit Pet Modal */}
+      <Modal
+        isOpen={isAddPetModalOpen}
+        onClose={() => {
+          setIsAddPetModalOpen(false);
+          setEditingPet(null);
+        }}
+        title={editingPet ? 'Edit Pet' : 'Add New Pet'}
+      >
+        <PetForm
+          pet={editingPet || undefined}
+          onSubmit={handlePetSubmit}
+          onCancel={() => {
+            setIsAddPetModalOpen(false);
+            setEditingPet(null);
+          }}
+        />
       </Modal>
     </div>
   );

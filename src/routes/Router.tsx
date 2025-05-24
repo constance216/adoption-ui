@@ -8,6 +8,9 @@ import PetsPage from '../pages/PetsPage';
 import CategoriesPage from '../pages/CategoriesPage';
 import BreedsPage from '../pages/BreedsPage';
 import AdoptionsPage from '../pages/AdoptionsPage';
+import SheltersPage from '../pages/ShelterPage';
+import VeterinariansPage from '../pages/VeterinariansPage';
+import DashboardPage from '../pages/DashboardPage';
 import ProtectedRoute from '../components/ProtectedRoute';
 
 // Simple hash-based router
@@ -50,6 +53,14 @@ const Router: React.FC = () => {
         return <Login />;
       case '/register':
         return <Register />;
+      case '/dashboard':
+        return (
+          <ProtectedRoute roles={['ADMIN']}>
+            <Layout>
+              <DashboardPage />
+            </Layout>
+          </ProtectedRoute>
+        );
       case '/pets':
         return (
           <ProtectedRoute>
@@ -86,10 +97,7 @@ const Router: React.FC = () => {
         return (
           <ProtectedRoute roles={['ADMIN', 'SHELTER']}>
             <Layout>
-              <div className="text-center py-8">
-                <h1 className="text-2xl font-bold text-gray-900">Shelters</h1>
-                <p className="text-gray-600 mt-2">Coming soon...</p>
-              </div>
+              <SheltersPage />
             </Layout>
           </ProtectedRoute>
         );
@@ -97,10 +105,7 @@ const Router: React.FC = () => {
         return (
           <ProtectedRoute roles={['ADMIN', 'VETERINARIAN']}>
             <Layout>
-              <div className="text-center py-8">
-                <h1 className="text-2xl font-bold text-gray-900">Veterinarians</h1>
-                <p className="text-gray-600 mt-2">Coming soon...</p>
-              </div>
+              <VeterinariansPage />
             </Layout>
           </ProtectedRoute>
         );

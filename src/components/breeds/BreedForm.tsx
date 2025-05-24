@@ -18,7 +18,7 @@ const BreedForm: React.FC<BreedFormProps> = ({
 }) => {
   const [formData, setFormData] = useState({
     name: breed?.name || '',
-    categoryId: breed?.category?.id?.toString() || '',
+    categoryId: breed?.categoryId?.toString() || '',
     description: breed?.description || '',
   });
   const [categories, setCategories] = useState<Category[]>([]);
