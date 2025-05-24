@@ -6,7 +6,10 @@ interface AuthContextType {
   user: AuthResponse | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (credentials: { username: string; password: string }) => Promise<void>;
+  login: (credentials: { username: string; password: string }) => Promise<AuthResponse>;
+  verify2FA: (code: string, tempToken: string) => Promise<void>;
+  requestPasswordReset: (email: string) => Promise<void>;
+  resetPassword: (token: string, password: string, confirmPassword: string) => Promise<void>;
   register: (userData: { username: string; email: string; password: string; fullName: string; role?: string }) => Promise<void>;
   logout: () => void;
 }
@@ -51,13 +54,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const login = async (credentials: { username: string; password: string }) => {
-    try {
-      const response = await authService.login(credentials);
+    const response = await authService.login(credentials);
+    // Don't set user yet if 2FA is required
+    if (!response.requires2FA) {
       setUser(response);
       authService.setCurrentUser(response);
-    } catch (error) {
-      throw error;
     }
+    return response;
+  };
+
+  const verify2FA = async (code: string, tempToken: string) => {
+    const response = await authService.verify2FA(code, tempToken);
+    setUser(response);
+    authService.setCurrentUser(response);
+  };
+
+  const requestPasswordReset = async (email: string) => {
+    await authService.requestPasswordReset(email);
+  };
+
+  const resetPassword = async (token: string, password: string, confirmPassword: string) => {
+    await authService.resetPassword(token, password, confirmPassword);
   };
 
   const register = async (userData: { username: string; email: string; password: string; fullName: string; role?: string }) => {
@@ -81,6 +98,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isAuthenticated: !!user,
     isLoading,
     login,
+    verify2FA,
+    requestPasswordReset,
+    resetPassword,
     register,
     logout,
   };

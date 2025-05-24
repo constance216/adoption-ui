@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../features/auth/AuthContext';
 import Layout from '../layout/Layout';
 import HomePage from '../pages/HomePage';
@@ -8,27 +8,45 @@ import PetsPage from '../pages/PetsPage';
 import CategoriesPage from '../pages/CategoriesPage';
 import BreedsPage from '../pages/BreedsPage';
 import AdoptionsPage from '../pages/AdoptionsPage';
-import SheltersPage from '../pages/ShelterPage';
+import SheltersPage from '../pages/SheltersPage';
 import VeterinariansPage from '../pages/VeterinariansPage';
 import DashboardPage from '../pages/DashboardPage';
 import ProtectedRoute from '../components/ProtectedRoute';
+import PasswordReset from '../pages/PasswordReset';
+import { Navigate } from 'react-router-dom';
 
 // Simple hash-based router
 const Router: React.FC = () => {
-  const [currentPath, setCurrentPath] = React.useState(window.location.hash.slice(1) || '/');
+  const [currentPath, setCurrentPath] = useState('');
+  const [queryParams, setQueryParams] = useState(new URLSearchParams());
   const { isAuthenticated } = useAuth();
 
-  React.useEffect(() => {
+  useEffect(() => {
     const handleHashChange = () => {
-      setCurrentPath(window.location.hash.slice(1) || '/');
+      const hash = window.location.hash.slice(1); // Remove the # symbol
+      const [path, query] = hash.split('?');
+      setCurrentPath(path || '/');
+      setQueryParams(new URLSearchParams(query || ''));
     };
 
+    // Check if we have a direct URL with query params (for password reset)
+    const path = window.location.pathname;
+    const search = window.location.search;
+    if (path === '/reset-password' && search) {
+      // Convert to hash-based URL
+      window.location.href = `/#/reset-password${search}`;
+      return;
+    }
+
     window.addEventListener('hashchange', handleHashChange);
+    // Initial call to set the initial route
+    handleHashChange();
+    
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
   // Helper function to navigate
-  React.useEffect(() => {
+  useEffect(() => {
     // Override the href clicks to use hash routing
     const links = document.querySelectorAll('a[href]');
     links.forEach(link => {
@@ -53,6 +71,15 @@ const Router: React.FC = () => {
         return <Login />;
       case '/register':
         return <Register />;
+      case '/forgot-password':
+        return <PasswordReset />;
+      case '/reset-password':
+        const token = queryParams.get('token');
+        if (!token) {
+          window.location.hash = '/login';
+          return null;
+        }
+        return <PasswordReset token={token} />;
       case '/dashboard':
         return (
           <ProtectedRoute roles={['ADMIN']}>

@@ -29,6 +29,7 @@ export interface User {
     username: string;
     email: string;
     role: string;
+    requires2FA?: boolean;
   }
   
   // Category types
@@ -127,4 +128,19 @@ export interface User {
     timestamp: string;
     message: string;
     details: string;
+  }
+
+  export interface TwoFactorVerifyRequest {
+    code: string;
+    token: string;
+  }
+
+  export interface PasswordResetRequest {
+    email: string;
+  }
+
+  export interface PasswordResetConfirmRequest {
+    token: string;
+    password: string;
+    confirmPassword: string;
   }

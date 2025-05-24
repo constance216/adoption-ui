@@ -1,30 +1,16 @@
 import React, { useState } from 'react';
 import { useAuth } from '../features/auth/AuthContext';
-import TwoFactorVerification from '../components/TwoFactorVerification';
 
-const Login: React.FC = () => {
-  const [formData, setFormData] = useState({
-    username: '',
-    password: '',
-  });
+interface TwoFactorVerificationProps {
+  tempToken: string;
+  onSuccess: () => void;
+}
+
+const TwoFactorVerification: React.FC<TwoFactorVerificationProps> = ({ tempToken, onSuccess }) => {
+  const [code, setCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [tempToken, setTempToken] = useState<string | null>(null);
-
-  const { login, isAuthenticated } = useAuth();
-
-  // Redirect if already authenticated
-  React.useEffect(() => {
-    if (isAuthenticated) {
-      window.location.href = '/pets';
-    }
-  }, [isAuthenticated]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    setError(''); // Clear error when user types
-  };
+  const { verify2FA } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,26 +18,14 @@ const Login: React.FC = () => {
     setError('');
 
     try {
-      const response = await login(formData);
-      if (response.requires2FA) {
-        setTempToken(response.token);
-      } else {
-        window.location.href = '/pets';
-      }
+      await verify2FA(code, tempToken);
+      onSuccess();
     } catch (err: any) {
-      setError(err.message || 'Login failed. Please try again.');
+      setError(err.message || 'Failed to verify 2FA code');
     } finally {
       setIsLoading(false);
     }
   };
-
-  const handleTwoFactorSuccess = () => {
-    window.location.href = '/pets';
-  };
-
-  if (tempToken) {
-    return <TwoFactorVerification tempToken={tempToken} onSuccess={handleTwoFactorSuccess} />;
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -61,71 +35,41 @@ const Login: React.FC = () => {
             <svg
               className="h-6 w-6 text-blue-600"
               fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
               viewBox="0 0 24 24"
               stroke="currentColor"
             >
-              <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+              />
             </svg>
           </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Sign in to your account
+            Two-Factor Authentication
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Or{' '}
-            <a
-              href="/register"
-              className="font-medium text-blue-600 hover:text-blue-500"
-            >
-              create a new account
-            </a>
+            Please enter the verification code sent to your email
           </p>
         </div>
-        
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
-              <label htmlFor="username" className="sr-only">
-                Username
+              <label htmlFor="code" className="sr-only">
+                Verification Code
               </label>
               <input
-                id="username"
-                name="username"
+                id="code"
+                name="code"
                 type="text"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Username"
-                value={formData.username}
-                onChange={handleChange}
+                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                placeholder="Enter verification code"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
               />
-            </div>
-            <div>
-              <label htmlFor="password" className="sr-only">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
-                value={formData.password}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="text-sm">
-              <a
-                href="/forgot-password"
-                className="font-medium text-blue-600 hover:text-blue-500"
-              >
-                Forgot your password?
-              </a>
             </div>
           </div>
 
@@ -180,22 +124,12 @@ const Login: React.FC = () => {
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
                   </svg>
-                  Signing in...
+                  Verifying...
                 </div>
               ) : (
-                'Sign in'
+                'Verify Code'
               )}
             </button>
-          </div>
-
-          <div className="text-center">
-            <div className="text-sm text-gray-600">
-              <p className="mb-2">Demo accounts:</p>
-              <div className="space-y-1 text-xs">
-                <p><strong>Admin:</strong> admin / admin123</p>
-                <p><strong>User:</strong> Create your own account</p>
-              </div>
-            </div>
           </div>
         </form>
       </div>
@@ -203,4 +137,4 @@ const Login: React.FC = () => {
   );
 };
 
-export default Login;
+export default TwoFactorVerification; 
